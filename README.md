@@ -4,8 +4,6 @@
 
 An interactive world map showcasing the countries IShowSpeed has visited during his IRL (In Real Life) travel streams, complete with details, highlights, and links.
 
-**(Optional: Add a screenshot of the map here!)**
-
 ## About This Project
 
 This project aims to be a comprehensive, fan-maintained resource tracking IShowSpeed's global streaming adventures. It provides an easy way to visualize where he's been, when, and some key moments from each trip.
@@ -54,7 +52,8 @@ The project currently consists of:
 * `index.html`: The main file containing all HTML, CSS, JavaScript, and the core `travelData`.
 * `README.md`: This file, providing information about the project.
 * `research.md`: Contains the detailed research notes (primarily from Gemini) used to compile the initial travel data points for the map.
-* `__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav`: The podcast audio file.
+* `__iShowSpeed's Global Glitch_...__.wav`: The podcast audio file. (Ensure this filename is exact).
+* `LICENSE`: (Recommended) Should contain the full text of the chosen license (e.g., MIT).
 
 ## How to Update Map Data
 
@@ -123,7 +122,4 @@ Have ideas or found a bug? Please **open an issue** on the GitHub repository! Cl
 
 ## License
 
-*(Optional: Add license information here if you choose one, e.g., MIT License)*
-
-This project is currently unlicensed / Provided as-is.
-
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
