@@ -489,10 +489,10 @@
                 if (!modal || !contentDiv) { console.error("Modal elements not found!"); return; }
                 contentDiv.innerHTML = '<p class="text-center text-gray-500">Loading README...</p>';
                 modal.classList.remove('hidden'); modal.classList.add('flex');
-                fetch('README.md')
+                fetch('research.md')
                     .then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.text(); })
                     .then(markdownText => { if (window.marked) { contentDiv.innerHTML = marked.parse(markdownText); } else { console.error("marked.js library not loaded."); contentDiv.innerHTML = '<p class="text-red-600">Error: Could not load Markdown parser.</p>'; } })
-                    .catch(error => { console.error('Error fetching or parsing README.md:', error); contentDiv.innerHTML = `<p class="text-red-600 text-center">Error loading README: ${error.message}</p>`; });
+                    .catch(error => { console.error('Error fetching or parsing research.md:', error); contentDiv.innerHTML = `<p class="text-red-600 text-center">Error loading research.md: ${error.message}</p>`; });
             }
 
             /** Hides the README modal. */
