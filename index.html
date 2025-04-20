@@ -15,192 +15,54 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Styles remain the same as before */
-        body {
-            font-family: 'Inter', sans-serif;
-            overscroll-behavior: none;
-            margin: 0;
-            background-color: #f3f4f6;
-        }
+        /* Base Styles */
+        body { font-family: 'Inter', sans-serif; overscroll-behavior: none; margin: 0; background-color: #f3f4f6; }
+        #map { height: 75vh; width: 100%; border-radius: 0.5rem; z-index: 1; background-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); cursor: grab; }
+        #map:active { cursor: grabbing; }
 
-        #map {
-            height: 75vh;
-            width: 100%;
-            border-radius: 0.5rem;
-            z-index: 1;
-            background-color: #e5e7eb;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            cursor: grab;
-        }
+        /* Tooltip Styling */
+        .custom-leaflet-tooltip { background-color: rgba(255, 255, 255, 0.95) !important; border-radius: 0.375rem !important; border: 1px solid #e5e7eb !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; padding: 0 !important; white-space: normal !important; }
+        .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before, .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { display: none !important; }
+        .tooltip-content-padding { padding: 0.5rem 0.75rem; }
+        .tooltip-content-padding h3 { font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+        .tooltip-content-padding p { font-size: 0.875rem; color: #4b5563; margin-bottom: 0.25rem; line-height: 1.25; }
+        .tooltip-content-padding strong { color: #374151; }
 
-        #map:active {
-            cursor: grabbing;
-        }
+        /* Popup Styling */
+        .leaflet-popup-content-wrapper { background-color: #ffffff; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .leaflet-popup-content { margin: 1rem; font-size: 0.875rem; line-height: 1.4; max-height: 250px; overflow-y: auto; color: #374151; }
+        .leaflet-popup-content h3 { font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; }
+        .leaflet-popup-content p { margin-bottom: 0.5rem; }
+        .leaflet-popup-content strong { font-weight: 600; color: #1f2937; }
+        .leaflet-popup-content a { color: #2563eb; text-decoration: underline; word-break: break-all; }
+        .leaflet-popup-content a:hover { color: #1d4ed8; }
+        .popup-links-section { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e5e7eb; }
+        .popup-links-section strong { display: block; margin-bottom: 0.25rem; }
+        .popup-links-section a { display: block; margin-bottom: 0.25rem; }
+        .leaflet-popup-tip-container { display: none; }
 
-        .custom-leaflet-tooltip {
-            background-color: rgba(255, 255, 255, 0.95) !important;
-            border-radius: 0.375rem !important;
-            border: 1px solid #e5e7eb !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-            padding: 0 !important;
-            white-space: normal !important;
-        }
+        /* Country Area Styling & Transitions */
+        .visited-country-base, .current-trip-base { opacity: 1; color: '#ffffff'; transition: fill-opacity 0.2s ease-in-out, fill-color 0.2s ease-in-out, weight 0.2s ease-in-out; }
+        .visited-country-base { fillOpacity: 0.65; }
+        .current-trip-base { fillOpacity: 0.75; }
 
-        .leaflet-tooltip-top::before,
-        .leaflet-tooltip-bottom::before,
-        .leaflet-tooltip-left::before,
-        .leaflet-tooltip-right::before {
-            display: none !important;
+        /* Flag Marker Styling */
+        .country-flag-icon {
+            border: 1px solid #ccc; /* Optional: slight border around flag */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border-radius: 2px; /* Optional: slight rounding */
         }
+        /* Ensure Leaflet's default icon paths are not broken if needed elsewhere */
+        .leaflet-marker-icon { /* May need adjustments depending on specific interactions */ }
+        .leaflet-marker-shadow { /* Usually hidden or adjusted when using custom icons */ }
 
-        .tooltip-content-padding {
-            padding: 0.5rem 0.75rem;
-        }
 
-        .tooltip-content-padding h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
-        }
-
-        .tooltip-content-padding p {
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-bottom: 0.25rem;
-            line-height: 1.25;
-        }
-
-        .tooltip-content-padding strong {
-            color: #374151;
-        }
-
-        .leaflet-popup-content-wrapper {
-            background-color: #ffffff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .leaflet-popup-content {
-            margin: 1rem;
-            font-size: 0.875rem;
-            line-height: 1.4;
-            max-height: 250px;
-            overflow-y: auto;
-            color: #374151;
-        }
-
-        .leaflet-popup-content h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.75rem;
-        }
-
-        .leaflet-popup-content p {
-            margin-bottom: 0.5rem;
-        }
-
-        .leaflet-popup-content strong {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .leaflet-popup-content a {
-            color: #2563eb;
-            text-decoration: underline;
-            word-break: break-all;
-        }
-
-        .leaflet-popup-content a:hover {
-            color: #1d4ed8;
-        }
-
-        .popup-links-section {
-            margin-top: 0.75rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .popup-links-section strong {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .popup-links-section a {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .leaflet-popup-tip-container {
-            display: none;
-        }
-
-        .visited-country-base,
-        .current-trip-base {
-            opacity: 1;
-            color: '#ffffff';
-            transition: fill-opacity 0.2s ease-in-out, fill-color 0.2s ease-in-out, weight 0.2s ease-in-out;
-        }
-
-        .visited-country-base {
-            fillOpacity: 0.65;
-        }
-
-        .current-trip-base {
-            fillOpacity: 0.75;
-        }
-
-        .country-marker {
-            cursor: pointer;
-            transition: fill-opacity 0.2s ease-in-out, stroke-width 0.2s ease-in-out;
-        }
-
-        .country-marker:hover {
-            stroke-width: 2;
-            fill-opacity: 0.9;
-        }
-
-        .extra-content {
-            border-top: 1px solid #e5e7eb;
-            padding-top: 1rem;
-            margin-top: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .extra-content audio {
-            max-width: 100%;
-            width: 350px;
-            height: 40px;
-        }
-
-        .readme-button {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background-color: #e5e7eb;
-            color: #374151;
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 0.375rem;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            text-decoration: none;
-            transition: background-color 0.15s ease-in-out;
-        }
-
-        .readme-button:hover {
-            background-color: #d1d5db;
-            color: #1f2937;
-        }
-
-        .readme-button svg {
-            width: 1rem;
-            height: 1rem;
-            margin-right: 0.5rem;
-        }
+        /* Extra Content Styling */
+        .extra-content { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+        .extra-content audio { max-width: 100%; width: 350px; height: 40px; }
+        .readme-button { display: inline-flex; align-items: center; padding: 0.5rem 1rem; background-color: #e5e7eb; color: #374151; font-weight: 500; font-size: 0.875rem; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); text-decoration: none; transition: background-color 0.15s ease-in-out; }
+        .readme-button:hover { background-color: #d1d5db; color: #1f2937; }
+        .readme-button svg { width: 1rem; height: 1rem; margin-right: 0.5rem; }
     </style>
 </head>
 
@@ -212,51 +74,34 @@
             <p id="map-loading-message" class="text-gray-500 text-center pt-16">Loading map data...</p>
         </div>
         <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-600">
-            <div class="flex items-center space-x-2">
-                <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #3b82f6; opacity: 0.65;"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3b82f6" class="w-4 h-4">
-                    <circle cx="12" cy="12" r="10" fill-opacity="0.8" />
-                </svg> <span>Visited</span> </div>
-            <div class="flex items-center space-x-2">
-                <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #10b981; opacity: 0.75;"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#10b981" class="w-4 h-4">
-                    <circle cx="12" cy="12" r="10" fill-opacity="0.8" />
-                </svg> <span>Current Trip</span> </div>
-            <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
-                </svg> <span>Click Area/Marker</span> </div>
-            <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.63 2.25a14.98 14.98 0 0 0-1.736 28.13a14.98 14.98 0 0 0 8.81-1.75 1.5 1.5 0 0 0 .356-1.833L15.59 14.37Z" />
-                </svg> <span>Hover Area/Marker</span> </div>
+             <div class="flex items-center space-x-2">
+                 <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #3b82f6; opacity: 0.65;"></span>
+                 <img src="https://flagcdn.com/w20/eu.png" alt="Flag" class="w-5 h-auto border border-gray-300">
+                 <span>Visited</span>
+             </div>
+             <div class="flex items-center space-x-2">
+                 <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #10b981; opacity: 0.75;"></span>
+                 <img src="https://flagcdn.com/w20/us.png" alt="Flag" class="w-5 h-auto border border-gray-300">
+                 <span>Current Trip</span>
+             </div>
+             <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" /></svg> <span>Click Area/Marker</span> </div>
+             <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.63 2.25a14.98 14.98 0 0 0-1.736 28.13a14.98 14.98 0 0 0 8.81-1.75 1.5 1.5 0 0 0 .356-1.833L15.59 14.37Z" /></svg> <span>Hover Area/Marker</span> </div>
         </div>
 
         <div class="extra-content">
-            <a href="README.md" target="_blank" rel="noopener noreferrer" class="readme-button">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                    </path>
-                </svg>
-                About this Map (README)
-            </a>
-            <div class="mt-2 text-center">
-                <p class="text-sm text-gray-600 mb-1">Listen to the Podcast:</p>
-                <audio controls class="w-full max-w-sm mx-auto">
-                    <source
-                        src="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav"
-                        type="audio/wav">
-                    Your browser does not support the audio element. Try downloading <a
-                        href="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav"
-                        download class="text-blue-600 hover:underline">here</a>.
-                </audio>
-            </div>
+             <a href="README.md" target="_blank" rel="noopener noreferrer" class="readme-button">
+                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                 About this Map (README)
+             </a>
+              <div class="mt-2 text-center">
+                  <p class="text-sm text-gray-600 mb-1">Listen to the Podcast:</p>
+                  <audio controls class="w-full max-w-sm mx-auto">
+                      <source src="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav" type="audio/wav">
+                      Your browser does not support the audio element. Try downloading <a href="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav" download class="text-blue-600 hover:underline">here</a>.
+                  </audio>
+              </div>
         </div>
-    </div>
-    <script>
+    </div> <script>
         document.addEventListener('DOMContentLoaded', function() {
             // ========================================================================
             // --- CONFIGURATION & DATA ---
@@ -320,7 +165,51 @@
             }
 
             // --- Feature Processing Function ---
-            function processFeatureLayer(layer) { if (!layer || !layer.feature || !layer.feature.properties) { console.warn("Skipping feature processing due to unexpected layer structure:", layer); return; } const countryCode = layer.feature.properties.iso_a2; const featureName = layer.feature.properties.name || countryCode || 'unknown feature'; try { if (countryCode && visitedCountryData[countryCode]) { const tripData = visitedCountryData[countryCode]; const ago = timeAgo(tripData.date); const highlightsSnippet = tripData.highlights.length > 120 ? tripData.highlights.substring(0, 120) + '...' : tripData.highlights; let tooltipContent = `<div class="tooltip-content-padding"><h3>${tripData.country}</h3><p><strong>Visited:</strong> ${ago}</p><p><strong>Highlights:</strong> ${highlightsSnippet}</p></div>`; layer.bindTooltip(tooltipContent, { sticky: true, direction: 'auto', offset: L.point(10, 0), className: 'custom-leaflet-tooltip' }); if (tripData.lat !== undefined && tripData.lon !== undefined) { const marker = L.circleMarker([tripData.lat, tripData.lon], { radius: 6, fillColor: tripData.current ? '#10b981' : '#3b82f6', color: '#ffffff', weight: 1.5, opacity: 1, fillOpacity: 0.8, className: 'country-marker', countryCode: countryCode, areaLayer: layer }).addTo(markers); marker.on({ click: showDetailsPopup, mouseover: handleMarkerMouseover, mouseout: handleMarkerMouseout }); } else { console.warn(`Missing lat/lon for visited country: ${featureName}. Skipping marker.`); } } layer.on({ mouseover: handleAreaMouseover, mouseout: handleAreaMouseout, click: showDetailsPopup }); } catch (featureError) { console.error(`Error processing feature ${featureName}:`, featureError); console.dir(featureError); } }
+            function processFeatureLayer(layer) {
+                if (!layer || !layer.feature || !layer.feature.properties) { console.warn("Skipping feature processing due to unexpected layer structure:", layer); return; }
+                const countryCode = layer.feature.properties.iso_a2;
+                const featureName = layer.feature.properties.name || countryCode || 'unknown feature';
+                try {
+                    if (countryCode && visitedCountryData[countryCode]) {
+                        const tripData = visitedCountryData[countryCode];
+                        const ago = timeAgo(tripData.date);
+                        const highlightsSnippet = tripData.highlights.length > 120 ? tripData.highlights.substring(0, 120) + '...' : tripData.highlights;
+
+                        // Bind Tooltip to Area Layer
+                        let tooltipContent = `<div class="tooltip-content-padding"><h3>${tripData.country}</h3><p><strong>Visited:</strong> ${ago}</p><p><strong>Highlights:</strong> ${highlightsSnippet}</p></div>`;
+                        layer.bindTooltip(tooltipContent, { sticky: true, direction: 'auto', offset: L.point(10, 0), className: 'custom-leaflet-tooltip' });
+
+                        // *** Use Flag Icon Marker ***
+                        if (tripData.lat !== undefined && tripData.lon !== undefined) {
+                            // Construct flag URL (using flagcdn.com)
+                            const flagUrl = `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`; // w40 = 40px width
+
+                            // Create a Leaflet icon object
+                            const flagIcon = L.icon({
+                                iconUrl: flagUrl,
+                                iconSize: [32, 24], // Adjust size as needed (width, height)
+                                iconAnchor: [16, 12], // Point of the icon which will correspond to marker's location (center)
+                                popupAnchor: [0, -12], // Point from which the popup should open relative to the iconAnchor
+                                className: 'country-flag-icon' // Add class for styling (e.g., border)
+                            });
+
+                            // Create the marker using L.marker and the custom icon
+                            const marker = L.marker([tripData.lat, tripData.lon], {
+                                icon: flagIcon,
+                                countryCode: countryCode, // Pass code for click handler
+                                areaLayer: layer // Pass area layer ref for hover handler
+                            }).addTo(markers);
+
+                            // Add events to marker
+                            marker.on({ click: showDetailsPopup, mouseover: handleMarkerMouseover, mouseout: handleMarkerMouseout });
+                        } else {
+                             console.warn(`Missing lat/lon for visited country: ${featureName}. Skipping marker.`);
+                        }
+                    }
+                    // Attach events to Area Layer
+                    layer.on({ mouseover: handleAreaMouseover, mouseout: handleAreaMouseout, click: showDetailsPopup });
+                } catch (featureError) { console.error(`Error processing feature ${featureName}:`, featureError); console.dir(featureError); }
+            }
 
             // --- Data Loading & Map Population ---
             const geoJsonUrl = 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_countries.geojson';
