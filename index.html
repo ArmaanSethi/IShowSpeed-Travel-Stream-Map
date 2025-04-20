@@ -161,23 +161,70 @@
             fill-opacity: 0.9;
         }
 
-        /* Styling for added links section */
-        .extra-links {
+        /* Styling for added links/audio section */
+        .extra-content {
             border-top: 1px solid #e5e7eb;
-            padding-top: 0.75rem;
+            /* Separator line */
+            padding-top: 1rem;
+            /* Spacing above */
             margin-top: 1rem;
-            text-align: center;
+            /* Spacing below legend */
+            display: flex;
+            /* Use flexbox for layout */
+            flex-direction: column;
+            /* Stack items vertically */
+            align-items: center;
+            /* Center items horizontally */
+            gap: 0.75rem;
+            /* Space between items */
         }
 
-        .extra-links a {
-            margin-left: 0.75rem;
-            margin-right: 0.75rem;
-            color: #4b5563;
-            text-decoration: underline;
+        .extra-content audio {
+            max-width: 100%;
+            /* Prevent audio player from overflowing */
+            width: 350px;
+            /* Set a reasonable max width */
+            height: 40px;
+            /* Standard height for controls */
         }
 
-        .extra-links a:hover {
+        .readme-button {
+            /* Tailwind classes for button styling */
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            /* Adjust padding */
+            background-color: #e5e7eb;
+            /* gray-200 */
+            color: #374151;
+            /* gray-700 */
+            font-weight: 500;
+            /* medium */
+            font-size: 0.875rem;
+            /* text-sm */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            /* shadow-sm */
+            text-decoration: none;
+            /* Remove underline */
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .readme-button:hover {
+            background-color: #d1d5db;
+            /* gray-300 */
             color: #1f2937;
+            /* gray-800 */
+        }
+
+        .readme-button svg {
+            width: 1rem;
+            /* w-4 */
+            height: 1rem;
+            /* h-4 */
+            margin-right: 0.5rem;
+            /* mr-2 */
         }
     </style>
 </head>
@@ -212,10 +259,27 @@
                 </svg> <span>Hover Area/Marker</span> </div>
         </div>
 
-        <div class="extra-links text-sm">
-            <a href="deepdive.md" target="_blank" rel="noopener noreferrer">About this Map (Deep Dive)</a>
-            <a href="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav"
-                download>Listen to the Podcast (.wav)</a>
+        <div class="extra-content">
+            <a href="README.md" target="_blank" rel="noopener noreferrer" class="readme-button">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                    </path>
+                </svg>
+                About this Map (README)
+            </a>
+
+            <div class="mt-2 text-center">
+                <p class="text-sm text-gray-600 mb-1">Listen to the Podcast:</p>
+                <audio controls class="w-full max-w-sm mx-auto">
+                    <source
+                        src="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav"
+                        type="audio/wav">
+                    Your browser does not support the audio element. Try downloading <a
+                        href="__iShowSpeed's Global Glitch_ Unpacking the Chaos, Culture, and Viral Velocity of a Streaming Phenomenon__.wav"
+                        download class="text-blue-600 hover:underline">here</a>.
+                </audio>
+            </div>
         </div>
     </div>
     <script>
