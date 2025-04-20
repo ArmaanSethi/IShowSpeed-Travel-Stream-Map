@@ -1,3 +1,9 @@
+This was completely vibe coded (if that wasn't obvious).  
+I used Gemini 2.5 Pro Deep Research for the data and Audio Overview.   
+I used Gemini 2.5 Pro Canvas for the code. I don't actually watch speed.   
+
+Feel free to contribute and edit this as it is open source! I'm sure there's lots to improve.
+
 # **iShowSpeed's Global Footprint: An Analysis of IRL Travel Streams**
 
 ## **I. Introduction**
