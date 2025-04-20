@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IShowSpeed's Travel Stream Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styles remain the same as before */
+        body { font-family: 'Inter', sans-serif; overscroll-behavior: none; margin: 0; background-color: #f3f4f6; }
+        #map { height: 75vh; width: 100%; border-radius: 0.5rem; z-index: 1; background-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); cursor: grab; }
+        #map:active { cursor: grabbing; }
+        .custom-leaflet-tooltip { background-color: rgba(255, 255, 255, 0.95) !important; border-radius: 0.375rem !important; border: 1px solid #e5e7eb !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; padding: 0 !important; white-space: normal !important; }
+        .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before, .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { display: none !important; }
+        .tooltip-content-padding { padding: 0.5rem 0.75rem; }
+        .tooltip-content-padding h3 { font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+        .tooltip-content-padding p { font-size: 0.875rem; color: #4b5563; margin-bottom: 0.25rem; line-height: 1.25; }
+        .tooltip-content-padding strong { color: #374151; }
+        .leaflet-popup-content-wrapper { background-color: #ffffff; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .leaflet-popup-content { margin: 1rem; font-size: 0.875rem; line-height: 1.4; max-height: 250px; overflow-y: auto; color: #374151; }
+        .leaflet-popup-content h3 { font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; }
+        .leaflet-popup-content p { margin-bottom: 0.5rem; }
+        .leaflet-popup-content strong { font-weight: 600; color: #1f2937; }
+        .leaflet-popup-content a { color: #2563eb; text-decoration: underline; word-break: break-all; }
+        .leaflet-popup-content a:hover { color: #1d4ed8; }
+        .popup-links-section { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e5e7eb; }
+        .popup-links-section strong { display: block; margin-bottom: 0.25rem; }
+        .popup-links-section a { display: block; margin-bottom: 0.25rem; }
+        .leaflet-popup-tip-container { display: none; }
+        .visited-country-base, .current-trip-base { opacity: 1; color: '#ffffff'; transition: fill-opacity 0.2s ease-in-out, fill-color 0.2s ease-in-out, weight 0.2s ease-in-out; } /* Changed border to white */
+        .visited-country-base { fillOpacity: 0.65; } /* Slightly increased opacity */
+        .current-trip-base { fillOpacity: 0.75; } /* Slightly increased opacity */
+        .country-marker { cursor: pointer; transition: fill-opacity 0.2s ease-in-out, stroke-width 0.2s ease-in-out; }
+        .country-marker:hover { stroke-width: 2; fill-opacity: 0.9; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">IShowSpeed's Travel Stream Map</h1>
+        <div id="map">
+             <p id="map-loading-message" class="text-gray-500 text-center pt-16">Loading map data...</p>
+        </div>
+        <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-600">
+             <div class="flex items-center space-x-2"> <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #3b82f6; opacity: 0.65;"></span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3b82f6" class="w-4 h-4"> <circle cx="12" cy="12" r="10" fill-opacity="0.8"/> </svg> <span>Visited</span> </div>
+             <div class="flex items-center space-x-2"> <span class="w-4 h-4 rounded border border-gray-300" style="background-color: #10b981; opacity: 0.75;"></span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#10b981" class="w-4 h-4"> <circle cx="12" cy="12" r="10" fill-opacity="0.8"/> </svg> <span>Current Trip</span> </div>
+             <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" /></svg> <span>Click Area/Marker</span> </div>
+             <div class="flex items-center space-x-2"> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.63 2.25a14.98 14.98 0 0 0-1.736 28.13a14.98 14.98 0 0 0 8.81-1.75 1.5 1.5 0 0 0 .356-1.833L15.59 14.37Z" /></svg> <span>Hover Area/Marker</span> </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ========================================================================
+            // --- CONFIGURATION & DATA ---
+            // ========================================================================
+
+            // --- IShowSpeed's Travel Data ---
+            // To add a new trip: Add a new object {...} to this array.
+            // Properties: country, iso_a2 (2-letter code), date ("YYYY-MM-DD"),
+            //             lat, lon (approximate marker coords),
+            //             highlights, links (array), current (boolean)
+            // Find lat/lon using online tools (e.g., https://www.latlong.net/)
+            const travelData = [
+                {
+                    country: "United States", iso_a2: "US", date: "2025-04-18",
+                    lat: 39.8, lon: -98.6, // Approx center of contiguous US
+                    highlights: "Currently streaming IRL from various locations across the USA, including meeting fans and exploring cities.",
+                    links: ["Search YouTube: 'IShowSpeed USA stream'"], current: true
+                },
+                {
+                    country: "Portugal", iso_a2: "PT", date: "2024-07-01",
+                    lat: 39.7, lon: -8.1, // Approx center of mainland Portugal
+                    highlights: "Attended Euro 2024 matches, famously barked at players, eventually met Cristiano Ronaldo after the tournament, explored Lisbon, and interacted with locals. High energy streams focused heavily on football.",
+                    links: ["Search YouTube: 'IShowSpeed Portugal Euro 2024'", "Search YouTube: 'IShowSpeed meets Ronaldo'"], current: false
+                },
+                {
+                    country: "United Kingdom", iso_a2: "GB", date: "2024-02-01",
+                    lat: 54.5, lon: -3.4, // Approx center of UK
+                    highlights: "Multiple visits over the years. Participated in the Sidemen Charity Match (2022), visited iconic football stadiums like Old Trafford and Emirates Stadium, met KSI, explored London landmarks, and collaborated with UK streamers.",
+                    links: ["Search YouTube: 'IShowSpeed Sidemen Charity Match'", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Search YouTube: 'IShowSpeed UK stream London'"], current: false
+                },
+                {
+                    country: "Qatar", iso_a2: "QA", date: "2022-12-01",
+                    lat: 25.3, lon: 51.2, // Approx center of Qatar
+                    highlights: "Travelled for the FIFA World Cup 2022. Attended matches for Portugal, Brazil, and Argentina, providing live reactions. Explored Doha, interacted with fans from around the globe, and experienced the World Cup atmosphere.",
+                    links: ["Search YouTube: 'IShowSpeed Qatar World Cup'"], current: false
+                },
+                {
+                    country: "India", iso_a2: "IN", date: "2023-10-15",
+                    lat: 21.8, lon: 78.6, // Approx center of India
+                    highlights: "Visited during the Cricket World Cup, attending the highly anticipated India vs. Pakistan match. Met Indian cricket superstar Virat Kohli, explored Mumbai, experienced local culture and food, and encountered massive crowds of enthusiastic fans.",
+                    links: ["Search YouTube: 'IShowSpeed India stream Mumbai'", "Search YouTube: 'IShowSpeed meets Virat Kohli'"], current: false
+                },
+                {
+                    country: "Japan", iso_a2: "JP", date: "2023-08-01",
+                    lat: 36.2, lon: 138.3, // Approx center of Japan (main islands)
+                    highlights: "Explored Tokyo, including iconic spots like Shibuya Crossing and ancient temples. Visited arcades, tried diverse local foods, experienced humorous culture clashes, collaborated with Japanese streamers, and dealt with numerous stream snipers.",
+                    links: ["Search YouTube: 'IShowSpeed Japan stream Tokyo'"], current: false
+                },
+                {
+                    country: "South Korea", iso_a2: "KR", date: "2023-08-15",
+                    lat: 36.5, lon: 127.8, // Approx center of South Korea
+                    highlights: "Explored Seoul, trying various Korean dishes and visiting popular tourist spots. Interacted with locals, collaborated with Korean streamers, and got a taste of K-Pop culture.",
+                    links: ["Search YouTube: 'IShowSpeed South Korea stream Seoul'"], current: false
+                },
+                {
+                    country: "Brazil", iso_a2: "BR", date: "2024-02-15",
+                    lat: -14.2, lon: -51.9, // Approx center of Brazil
+                    highlights: "Experienced the vibrant Rio de Janeiro Carnival, visited the Christ the Redeemer statue, explored favelas (with local guides), met Brazilian football legend Ronaldo Nazário. Streams were known for high energy, dancing, and fan interactions.",
+                    links: ["Search YouTube: 'IShowSpeed Brazil stream Rio Carnival'", "Search YouTube: 'IShowSpeed meets Ronaldo Nazario'"], current: false
+                },
+                {
+                    country: "Albania", iso_a2: "AL", date: "2023-07-15",
+                    lat: 41.1, lon: 20.1, // Approx center of Albania
+                    highlights: "Visited Tirana, partly prompted by fan requests and memes. Explored the capital city, interacted with locals, experienced Albanian culture, and received a notably warm reception. Met local figures including Dua Lipa's father.",
+                    links: ["Search YouTube: 'IShowSpeed Albania stream Tirana'"], current: false
+                }
+            ];
+            // ========================================================================
+
+
+            // --- Map & Layer Initialization ---
+            const mapElement = document.getElementById('map');
+            const loadingMessage = document.getElementById('map-loading-message');
+            if (!mapElement) { console.error("Map container element '#map' not found!"); return; }
+            if (mapElement.offsetHeight === 0 || mapElement.offsetWidth === 0) { console.warn("Map container has zero height or width."); }
+            let map, geoJsonLayer, markers;
+            try {
+                map = L.map('map', { worldCopyJump: true }).setView([20, 0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>' }).addTo(map);
+                markers = L.featureGroup().addTo(map);
+            } catch (initError) { console.error("Leaflet map initialization failed:", initError); if (mapElement) mapElement.innerHTML = `<p class="text-red-600 text-center p-4">Could not initialize the map. ${initError.message}</p>`; return; }
+
+            // --- Data Processing ---
+            const visitedCountryData = travelData.reduce((acc, trip) => { acc[trip.iso_a2] = trip; return acc; }, {});
+            const now = luxon.DateTime.now();
+
+            // ========================================================================
+            // --- HELPER FUNCTIONS ---
+            // ========================================================================
+            function timeAgo(isoDateString) { const pastDate = luxon.DateTime.fromISO(isoDateString); return pastDate.isValid ? pastDate.toRelative({ base: now }) : "Unknown date"; }
+            function getYouTubeSearchUrl(query) { return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`; }
+
+            // ========================================================================
+            // --- STYLING ---
+            // ========================================================================
+            function styleCountry(feature) { const countryCode = feature.properties.iso_a2; if (countryCode && visitedCountryData[countryCode]) { const tripData = visitedCountryData[countryCode]; return { fillColor: tripData.current ? '#10b981' : '#3b82f6', weight: tripData.current ? 2 : 1, opacity: 1, color: '#ffffff', fillOpacity: tripData.current ? 0.75 : 0.65, className: tripData.current ? 'current-trip-base' : 'visited-country-base' }; } else { return { fillColor: '#cccccc', fillOpacity: 0.1, weight: 0.5, color: '#e5e7eb' }; } }
+            function getHoverStyle(tripData) { return { weight: 2, color: '#ffffff', fillOpacity: 0.85, fillColor: tripData.current ? '#059669' : '#2563eb' }; }
+
+            // ========================================================================
+            // --- EVENT HANDLERS ---
+            // ========================================================================
+            function handleAreaMouseover(e) { const layer = e.target; const countryCode = layer.feature.properties.iso_a2; if (countryCode && visitedCountryData[countryCode]) { layer.setStyle(getHoverStyle(visitedCountryData[countryCode])); if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { layer.bringToFront(); } layer.openTooltip(); } }
+            function handleAreaMouseout(e) { const layer = e.target; if (geoJsonLayer && layer.feature && visitedCountryData[layer.feature.properties.iso_a2]) { geoJsonLayer.resetStyle(layer); } layer.closeTooltip(); }
+            function handleMarkerMouseover(e) { const marker = e.target; const areaLayer = marker.options.areaLayer; if (areaLayer && areaLayer.feature && visitedCountryData[areaLayer.feature.properties.iso_a2]) { areaLayer.setStyle(getHoverStyle(visitedCountryData[areaLayer.feature.properties.iso_a2])); if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { areaLayer.bringToFront(); } areaLayer.openTooltip(marker.getLatLng()); } }
+            function handleMarkerMouseout(e) { const marker = e.target; const areaLayer = marker.options.areaLayer; if (areaLayer && geoJsonLayer && areaLayer.feature && visitedCountryData[areaLayer.feature.properties.iso_a2]) { geoJsonLayer.resetStyle(areaLayer); areaLayer.closeTooltip(); } }
+            function showDetailsPopup(e) { let countryCode, latlng, targetLayer; if (e.target.feature) { targetLayer = e.target; countryCode = targetLayer.feature.properties.iso_a2; latlng = e.latlng; } else if (e.target.options && e.target.options.countryCode) { targetLayer = e.target.options.areaLayer; countryCode = e.target.options.countryCode; latlng = e.target.getLatLng(); } else { return; } if (countryCode && visitedCountryData[countryCode]) { const tripData = visitedCountryData[countryCode]; const ago = timeAgo(tripData.date); const formattedDate = luxon.DateTime.fromISO(tripData.date).isValid ? luxon.DateTime.fromISO(tripData.date).toFormat('MMMM GetSRP') : 'N/A'; let popupContent = `<h3>${tripData.country}</h3> <p><strong>Visited:</strong> ${ago} (around ${formattedDate})</p> <p><strong>Highlights:</strong> ${tripData.highlights}</p>`; if (tripData.links && tripData.links.length > 0) { popupContent += '<div class="popup-links-section"><strong>Related Links:</strong>'; tripData.links.forEach(linkText => { linkText = linkText.trim(); let url = '#'; let linkDisplay = linkText; if (linkText.toLowerCase().startsWith('http://') || linkText.toLowerCase().startsWith('https://')) { url = linkText; try { const urlObj = new URL(linkText); linkDisplay = urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be') ? 'Watch on YouTube' : urlObj.hostname; } catch (err) { linkDisplay = 'Direct Link'; } } else if (linkText.toLowerCase().startsWith('search youtube:')) { const query = linkText.substring("Search YouTube:".length).trim(); if (query) { url = getYouTubeSearchUrl(query); linkDisplay = `Search: "${query}"`; } else { linkDisplay = ''; } } else { linkDisplay = ''; } if (linkDisplay && url !== '#') { popupContent += `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkDisplay}</a>`; } }); popupContent += '</div>'; } L.popup({ maxWidth: 350, autoPan: true, autoPanPadding: L.point(50, 50), closeButton: true }).setLatLng(latlng).setContent(popupContent).openOn(map); if (targetLayer && typeof targetLayer.getBounds === 'function') { map.flyToBounds(targetLayer.getBounds(), { paddingTopLeft: L.point(0, 10), paddingBottomRight: L.point(0, 10), duration: 0.5 }); } } }
+
+            // ========================================================================
+            // --- FEATURE PROCESSING FUNCTION (for eachLayer) ---
+            // ========================================================================
+            function processFeatureLayer(layer) {
+                if (!layer || !layer.feature || !layer.feature.properties) { console.warn("Skipping feature processing due to unexpected layer structure:", layer); return; }
+                const countryCode = layer.feature.properties.iso_a2;
+                const featureName = layer.feature.properties.name || countryCode || 'unknown feature';
+                try {
+                    if (countryCode && visitedCountryData[countryCode]) {
+                        const tripData = visitedCountryData[countryCode];
+                        const ago = timeAgo(tripData.date);
+                        const highlightsSnippet = tripData.highlights.length > 120 ? tripData.highlights.substring(0, 120) + '...' : tripData.highlights;
+
+                        // Bind Tooltip to Area Layer
+                        let tooltipContent = `<div class="tooltip-content-padding"><h3>${tripData.country}</h3><p><strong>Visited:</strong> ${ago}</p><p><strong>Highlights:</strong> ${highlightsSnippet}</p></div>`;
+                        layer.bindTooltip(tooltipContent, { sticky: true, direction: 'auto', offset: L.point(10, 0), className: 'custom-leaflet-tooltip' });
+
+                        // *** Add Circle Marker using lat/lon from travelData ***
+                        if (tripData.lat !== undefined && tripData.lon !== undefined) {
+                            const marker = L.circleMarker([tripData.lat, tripData.lon], { // Use specified lat/lon
+                                radius: 6,
+                                fillColor: tripData.current ? '#10b981' : '#3b82f6',
+                                color: '#ffffff', // White border
+                                weight: 1.5,
+                                opacity: 1,
+                                fillOpacity: 0.8,
+                                className: 'country-marker',
+                                countryCode: countryCode, // Pass code for click handler
+                                areaLayer: layer // Pass area layer ref for hover handler
+                            }).addTo(markers);
+
+                            // Add events to marker
+                            marker.on({ click: showDetailsPopup, mouseover: handleMarkerMouseover, mouseout: handleMarkerMouseout });
+                        } else {
+                             console.warn(`Missing lat/lon for visited country: ${featureName}. Skipping marker.`);
+                        }
+                    }
+                    // Attach events to Area Layer
+                    layer.on({ mouseover: handleAreaMouseover, mouseout: handleAreaMouseout, click: showDetailsPopup });
+                } catch (featureError) { console.error(`Error processing feature ${featureName}:`, featureError); console.dir(featureError); }
+            }
+
+            // ========================================================================
+            // --- DATA LOADING & MAP POPULATION ---
+            // ========================================================================
+            const geoJsonUrl = 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_countries.geojson';
+            fetch(geoJsonUrl)
+                .then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status} ${response.statusText || '(No status text)'}`); } return response.json(); })
+                .then(data => {
+                    if (!map) { console.error("Map object not initialized before adding GeoJSON layer."); return; }
+                    if (loadingMessage) loadingMessage.style.display = 'none';
+                    try {
+                        geoJsonLayer = L.geoJson(data, { style: styleCountry }).addTo(map);
+                    } catch (layerCreationError) { console.error("Error creating initial GeoJSON layer:", layerCreationError); console.dir(layerCreationError); if (mapElement) mapElement.innerHTML = `<p class="text-red-600 text-center p-4">Error creating map layers: ${layerCreationError.message || 'Unknown layer creation error'}</p>`; return; }
+                    try {
+                         setTimeout(() => {
+                             console.log("Starting to add interactions and markers...");
+                             if (geoJsonLayer && typeof geoJsonLayer.eachLayer === 'function') { geoJsonLayer.eachLayer(processFeatureLayer); markers.bringToFront(); console.log("Finished adding interactions and markers."); }
+                             else { console.error("geoJsonLayer is not valid or doesn't have eachLayer method."); }
+                         }, 50);
+                    } catch (interactionError) {
+                         console.error("Error initiating interactions/markers processing:", interactionError); console.dir(interactionError);
+                         if (mapElement) { const errorDiv = document.createElement('p'); errorDiv.className = 'text-orange-600 text-center p-2 text-sm'; errorDiv.textContent = `Note: Some map interactions might be missing due to errors (${interactionError.message || 'Unknown interaction error'}).`; mapElement.parentNode.insertBefore(errorDiv, mapElement.nextSibling); }
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading or processing GeoJSON. Details:", error); console.dir(error);
+                    if (mapElement) mapElement.innerHTML = `<p class="text-red-600 text-center p-4">Could not load map data: ${error.message || 'Unknown error'}. Please check the browser console for details or try again later.</p>`;
+                    if (loadingMessage) loadingMessage.style.display = 'none'; if (mapElement) mapElement.style.height = 'auto';
+                });
+
+        }); // --- End of DOMContentLoaded listener ---
+    </script>
+
+</body>
+</html>
